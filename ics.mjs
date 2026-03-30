@@ -22,42 +22,41 @@ export async function fetchCalendar(url) {
   return await ((await fetch(url)).text());
 }
 
-// /**
-//  * @param {Array<string>} calendar_string_list
-//  * @returns {Array<ICSEvent>} ics_event_list
-//  */
-// export function parseStringListToIcsEventList(calendar_string_list) {
-//   const ics_event_list = [];
-//   for (const calendar_string of calendar_string_list) {
-//     ics_event_list.push(...parseCalendarStringToCalendarEventList(calendar_string));
-//   }
-//   console.log(ics_event_list);
-//   return ics_event_list;
-// }
+/**
+ * @param {Array<string>} calendar_string_list
+ * @returns {Array<ICSEvent>} ics_event_list
+ */
+export function parseStringListToCalendarEventList(calendar_string_list) {
+  const calendar_event_list = [];
+  console.log(calendar_string_list);
+  
+  for (const calendar_string of calendar_string_list) {
+    console.log(calendar_string);
+    console.log(parseCalendarStringToCalendarEventList(calendar_string));
+     
+    
+    calendar_event_list.push(...parseCalendarStringToCalendarEventList(calendar_string));
+  }
+  console.log(calendar_event_list);
+  return calendar_event_list;
+}
 
 
 
-export function parseCalendarStringToCalendarEventList(calendar_string_list) {
-  console.log("parseCalendarStringToIcsEventList");
+export function parseCalendarStringToCalendarEventList(calendar_string) {
+  console.log("parseCalendarStringToCalendarEventList");
   
   const calendar_event_list = [];
   let ics_event_to_add = null;
-  for (const calendar_string of calendar_string_list) {
+  // for (const calendar_string of calendar_string_list) {
     for (let i = 0; i < calendar_string.length; i++) {
       if (stringMatchAtIndex(calendar_string, i, "END:VCALENDAR\n")) {
+        console.log(calendar_event_list);
         return calendar_event_list;
       }
   
       if (stringMatchAtIndex(calendar_string, i, "END:VEVENT\n")) {
-        
-        // const new_calendar_event = new CalendarEvent({
-        //   title: ics_event_to_add.description,
-        //   start: ics_event_to_add.start,
-        //   allDay: true,
-        //   backgroundColor: ics_event_to_add.status,
-        //   end: ics_event_to_add.end,
-        //   id
-        // });
+        console.log(icsToCalendarEvent(ics_event_to_add));
         if (ics_event_to_add) calendar_event_list.push(icsToCalendarEvent(ics_event_to_add));
         i += "END:VEVENT\n".length
       }
@@ -75,8 +74,7 @@ export function parseCalendarStringToCalendarEventList(calendar_string_list) {
       readNextIcsProperty(ics_event_to_add, calendar_string, i, "DESCRIPTION:", "description");
       readNextIcsProperty(ics_event_to_add, calendar_string, i, "STATUS:", "status");
     }
-    
-  }
+  // }
   return calendar_event_list;
 }
 

@@ -1,6 +1,6 @@
 # Todo
 - Loading the ics files => DONE
-- input for calendar (ics) urls
+- input for calendar (ics) urls => DONE
 - onUpdate calendar save the ics file
 - update ics file on load
 - download ics button file
