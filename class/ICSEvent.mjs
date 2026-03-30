@@ -1,20 +1,32 @@
-/**
- * Represents a calendar event parsed from an ICS file.
- */
+/** Represents a calendar event parsed from an ICS file.  */
 export class ICSEvent {
 
   /**
    * @param {Object} params
    * @param {string|null} params.uid
+   * @param {string|null} params.stamp
    * @param {string|null} params.start
    * @param {string|null} params.end
    * @param {string|null} params.summary
+   * @param {string|null} params.description
+   * @param {string|null} params.status
    */
-  constructor({ uid = null, start = null, end = null, summary = null } = {}) {
+  constructor({ 
+    uid = null,
+    stamp = null,
+    start = null,
+    end = null,
+    summary = null,
+    description = null,
+    status = null,
+  } = {}) {
     this.uid = uid
+    this.stamp = stamp
     this.start = start
     this.end = end
     this.summary = summary
+    this.description = description
+    this.status = status
   }
 }
 
@@ -30,7 +42,7 @@ export class ICSEvent {
  * const events = parseICS(icsString)
  * console.log(events)
  */
-export function parseToIcsEvent(icsText) {
+export function parseStringToIcsEvent(icsText) {
   const events = []
   const lines = icsText.split(/\r?\n/)
 

@@ -1,27 +1,50 @@
-import { 
-  CalendarEvent,
-  icsListToCalendarEvents,
-  icsToCalendarEvent
-} from "./class/CalendarEvent.mjs";
-import { 
-  parseToIcsEvent,
-  addAirbnbDetailsToIcs,
- } from "./class/ICSEvent.mjs";
 import { getTodayDateAsYYYYMMDD, } from "./function/utils.mjs";
-import { airbnbIcs } from './test/airbnbIcs.mjs'
 
-const airbnbICSEvents = parseToIcsEvent(airbnbIcs)
-console.log('bnbICSEvents : ', airbnbICSEvents);
-const airbnbICSEventsWithDetails = addAirbnbDetailsToIcs(airbnbICSEvents)
-console.log('airbnbICSEventsWithDetails', airbnbICSEventsWithDetails);
+import { 
+  fetchCalendarList,
+  parseCalendarStringToCalendarEventList,
+} from "./ics.mjs";
+
+const ics_url_inputs_container = document.getElementById("ics-url-inputs-container")
 
 
-const airbnbCalendarEvents = new icsListToCalendarEvents(airbnbICSEventsWithDetails)
-console.log('bnbCalendarEvents : ',  airbnbCalendarEvents);
+const airbnb_input = document.getElementById("airbnb-input")
+const booking_input = document.getElementById("booking-input")
+const fetch_calendars_button = document.getElementById("fetch-calendars-button")
+fetch_calendars_button.onclick = () => {
+  const calendar_urls_to_fetch = [ 
+    airbnb_input.value,
+    booking_input.value
+  ];
+  const calendar_list = fetchCalendarList(calendar_urls_to_fetch);
+  const ics_event_list = parseStringListToIcsEventList(calendar_list);
+  const ics_event_list_detailled = addDetailsToIcsList(ics_event_list);
+
+  for (const ics_event of ics_event_list) {
+    
+  }
+}
+const test_calendars = await fetchCalendarList(null);
+
+console.log("test_calendars", test_calendars);
+
+
+// const airbnbICSEvents = parseStringToIcsEvent(airbnbIcs)
+// console.log('bnbICSEvents : ', airbnbICSEvents);
+// const airbnbICSEventsWithDetails = addAirbnbDetailsToIcs(airbnbICSEvents)
+// console.log('airbnbICSEventsWithDetails', airbnbICSEventsWithDetails);
+
+
+// const airbnbCalendarEvents = new icsListToCalendarEvents(airbnbICSEventsWithDetails)
+// console.log('bnbCalendarEvents : ',  airbnbCalendarEvents);
 
 
 
 const initialDate = getTodayDateAsYYYYMMDD();
+const ics_event_list = parseCalendarStringToCalendarEventList(test_calendars);
+const calendar_event_list = parseCalendarStringToCalendarEventList(test_calendars);
+console.log(ics_event_list);
+
 
 document.addEventListener("DOMContentLoaded", function () {
   var calendarEl = document.getElementById("calendar");
@@ -46,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     },
     editable: true,
     dayMaxEvents: true, // allow "more" link when too many events
-    events: airbnbCalendarEvents,
+    events: ics_event_list,
   });
 
   calendar.render();

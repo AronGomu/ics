@@ -5,15 +5,15 @@ import { ICSEvent } from "./ICSEvent.mjs";
  */
 export const EventColors = {
   RED: "#ff0000",
+  CONFIRMED: "#ff0000",
+  // CONFIRMED: "#ff0000",
   GREEN: "#00ff00",
   BLUE: "#0000ff",
-  AIRBNB:  "",
-  BOOKING: "",
+  // AIRBNB:  "",
+  // BOOKING: "",
 };
 
-/**
- * Represents an event that can be added to a FullCalendar instance.
- */
+/** Represents an event that can be added to a FullCalendar instance.  */
 export class CalendarEvent {
 
   /**
@@ -67,13 +67,17 @@ export function icsToCalendarEvent(icsEvent) {
     throw new Error("Parameter must be an ICSEvent instance : ");
   }
 
+  let background_color = EventColors.GREEN;
+  if (icsEvent.uid.search("airbnb")) background_color = EventColors.BLUE;
+  if (icsEvent.uid.search("booking")) background_color = EventColors.RED;
+
   return new CalendarEvent({
-    title: icsEvent.summary || "Reserved",
+    title: icsEvent.description,
     start: icsEvent.start,
     end: icsEvent.end,
     allDay: true,
     id: icsEvent.uid,
-    backgroundColor: EventColors.RED
+    backgroundColor: background_color
   });
 }
 
