@@ -1,7 +1,7 @@
-import { getTodayDateAsYYYYMMDD, } from "./function/utils.mjs";
-
+import { generateIcsFileFromCalendarEventList } from "./class/CalendarEvent.mjs";
 import { 
   fetchCalendarList,
+  parseCalendarStringToCalendarEventList,
   parseStringListToCalendarEventList,
 } from "./ics.mjs";
 
@@ -20,15 +20,18 @@ fetch_calendars_button.onclick = async () => {
   ];
   const calendar_list = await fetchCalendarList(calendar_urls_to_fetch);
   const calendar_event_list = parseStringListToCalendarEventList(calendar_list);
+  const ics_file = generateIcsFileFromCalendarEventList(calendar_event_list);
+  localStorage.setItem("ics_file", ics_file);
+  
   loadCalendar(calendar_event_list);
 }
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  // TODO : implements localhost/cache loading
-  loadCalendar();
+  const ics_file = localStorage.getItem("ics_file");
+  const calendar_event_list = parseCalendarStringToCalendarEventList(ics_file);
+  loadCalendar(calendar_event_list);
 });
-
 // END INIT //
 
 function loadCalendar(calendar_event_list) {
@@ -74,4 +77,29 @@ function select(calendar, arg) {
         });
       }
       calendar.unselect();
+}
+
+
+
+// FUNCTIONS // 
+/**
+ * Returns today's date formatted as YYYY-MM-DD.
+ * 
+ * Uses the browser's local time and pads month/day with leading zeros
+ * to ensure proper ISO-like formatting.
+ *
+ * @returns {string} Today's date formatted as "YYYY-MM-DD"
+ *
+ * @example
+ * const today = getTodayDate();
+ * console.log(today); // "2026-03-08"
+ */
+export function getTodayDateAsYYYYMMDD() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const day = String(now.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 }

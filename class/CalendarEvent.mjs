@@ -1,101 +1,131 @@
-import { ICSEvent } from "./ICSEvent.mjs";
-
-/**
- * @typedef {'#ff0000' | '#00ff00' | '#0000ff'} ColorCode
- */
 export const EventColors = {
   RED: "#ff0000",
   CONFIRMED: "#ff0000",
   // CONFIRMED: "#ff0000",
   GREEN: "#00ff00",
   BLUE: "#0000ff",
+  WHITE: "#000000",
   // AIRBNB:  "",
   // BOOKING: "",
 };
 
 /** Represents an event that can be added to a FullCalendar instance.  */
 export class CalendarEvent {
-
-  /**
-   * @param {Object} params
-   * @param {string} params.title - The title of the event.
-   * @param {string|Date} params.start - Event start date/time.
-   * @param {string|Date} [params.end] - Event end date/time.
-   * @param {boolean} [params.allDay=false] - Whether the event is all-day.
-   * @param {string} [params.id] - Optional unique identifier for the event.
-   * @param {EventColors} [params.backgroundColor] - Optional color for the event.
-   */
-  constructor({ title, start, end = null, allDay = false, id = null, backgroundColor = null }) {
-    this.title = title;
+  constructor(
+    description = null,
+    start = null,
+    end = null,
+    id = null, 
+    stamp = null,
+    summary = null,
+    status = null,
+    backgroundColor = null,
+    allDay = true, 
+  ) {
+    this.title = description;
     this.start = start;
     this.end = end;
-    this.allDay = allDay;
     this.id = id;
+    this.stamp = stamp;
+    this.summary = summary;
+    this.status = status;
     this.backgroundColor = backgroundColor;
+    this.allDay = allDay;
   }
 
-  /**
-   * Converts the event to a plain object suitable for FullCalendar.
-   * @returns {Object}
-   */
-  toFullCalendarEvent() {
-    const eventObj = {
-      title: this.title,
-      start: this.start,
-      allDay: this.allDay
-    };
-    if (this.end) eventObj.end = this.end;
-    if (this.id) eventObj.id = this.id;
-    if (this.backgroundColor) eventObj.backgroundColor = this.backgroundColor;
-    return eventObj;
+  generateBackgroundColor() {
+    console.log(this.id);
+    if (this.id.includes("airbnb")) return this.backgroundColor = EventColors.RED;
+    else if (this.id.includes("booking")) return this.backgroundColor = EventColors.BLUE;
+    return this.backgroundColor = EventColors.WHITE;
   }
 }
 
 /**
- * Converts a single ICSEvent into a CalendarEvent.
- *
- * @param {ICSEvent} icsEvent - The ICS event to convert.
- * @returns {CalendarEvent} A FullCalendar-compatible CalendarEvent.
- *
- * @example
- * const calEvent = icsToCalendarEvent(myICSEvent);
+ * Parse an ICS file and return CalendarEvents.
+ * @param {string} icsText - Raw ICS file content as a string
+ * @returns {Array<CalendarEvent>}
  */
-export function icsToCalendarEvent(icsEvent) {
-  console.log(icsEvent);
-  
-  if (!icsEvent || !(icsEvent instanceof ICSEvent)) {
-    throw new Error("Parameter must be an ICSEvent instance : ");
+export function parseStringToCalendarEvent(icsText) {
+  const events = []
+  const lines = icsText.split(/\r?\n/)
+
+  let currentEvent = null
+
+  for (const line of lines) {
+
+    if (line.startsWith("BEGIN:VEVENT")) {
+      currentEvent = new CalendarEvent()
+    }
+
+    else if (line.startsWith("END:VEVENT")) {
+      if (currentEvent) events.push(currentEvent)
+      currentEvent = null
+    }
+
+    else if (currentEvent) {
+      if (line.startsWith("UID:")) {
+        currentEvent.uid = line.substring(4)
+      }
+
+      else if (line.startsWith("DTSTART")) {
+        const value = line.split(":")[1]
+        currentEvent.start = formatICSDate(value)
+      }
+
+      else if (line.startsWith("DTEND")) {
+        const value = line.split(":")[1]
+        currentEvent.end = formatICSDate(value)
+      }
+
+      else if (line.startsWith("SUMMARY:")) {
+        currentEvent.summary = line.substring(8)
+      }
+
+    }
   }
 
-  let background_color = EventColors.GREEN;
-  if (icsEvent.uid.search("airbnb")) background_color = EventColors.BLUE;
-  if (icsEvent.uid.search("booking")) background_color = EventColors.RED;
-
-  return new CalendarEvent({
-    title: icsEvent.description,
-    start: icsEvent.start,
-    end: icsEvent.end,
-    allDay: true,
-    id: icsEvent.uid,
-    backgroundColor: background_color
-  });
+  return events
 }
 
 /**
- * Converts an array of ICSEvent objects into CalendarEvent objects.
+ * Convert ICS date format (YYYYMMDD) to YYYY-MM-DD
  *
- * @param {ICSEvent[]} icsEvents - Array of ICS events to convert.
- * @returns {CalendarEvent[]} Array of CalendarEvent instances.
- *
- * @example
- * const calEvents = icsListToCalendarEvents(myICSEventArray);
+ * @param {string} dateStr
+ * @returns {string|null}
  */
-export function icsListToCalendarEvents(icsEvents) {
-  console.log(icsEvents);
-  
-  if (!Array.isArray(icsEvents)) {
-    throw new Error("Parameter must be an array of ICSEvent objects");
+function formatICSDate(dateStr) {
+  if (!dateStr) return null
+  return `${dateStr.slice(0,4)}-${dateStr.slice(4,6)}-${dateStr.slice(6,8)}`
+}
+
+
+export function generateIcsFileFromCalendarEventList(ics_event_list) {
+  let ics_file = "BEGIN:VCALENDAR\n"
+  + "VERSION:2.0\n"
+  + "PRODID:null\n"
+  + "CALSCALE:GREGORIAN\n"
+  + "METHOD:PUBLISH\n"
+  + "X-WR-CALNAME:insert_calendar_name\n"
+  + "X-WR-TIMEZONE:UTC\n"
+  + "\n"
+
+  for (const ics_event of ics_event_list) {
+    ics_file += generateIcsFileFromCalendarEvent(ics_event);
   }
 
-  return icsEvents.map(icsToCalendarEvent);
+  return ics_file += "END:VCALENDAR";
+}
+
+function generateIcsFileFromCalendarEvent(calendar_event) {
+  return "BEGIN:VEVENT\n"
+  + "UID:" + calendar_event.id + "\n"
+  + "DTSTAMP:" + calendar_event.stamp + "\n"
+  + "DTSTART;VALUE=DATE:" + calendar_event.start + "\n"
+  + "DTEND;VALUE=DATE:" + calendar_event.end + "\n"
+  + "SUMMARY:" + calendar_event.summary + "\n"
+  + "DESCRIPTION:" + calendar_event.title+ "\n"
+  + "STATUS:" + calendar_event.status + "\n"
+  +"END:VEVENT\n"
+  + "\n"
 }
