@@ -15,8 +15,6 @@ const airbnb_input = document.getElementById("airbnb-input")
 const booking_input = document.getElementById("booking-input")
 const fetch_calendars_button = document.getElementById("fetch-calendars-button")
 fetch_calendars_button.onclick = async () => {
-  console.log("fetch calendar");
-  
   const calendar_urls_to_fetch = [ 
     airbnb_input.value,
     booking_input.value
@@ -24,12 +22,13 @@ fetch_calendars_button.onclick = async () => {
   const calendar_list = await fetchCalendarList(calendar_urls_to_fetch);
   const calendar_event_list = parseStringListToCalendarEventList(calendar_list);
   saveCalendar(calendar_event_list);
-  
-  
-  
   loadCalendar(calendar_event_list);
 }
-
+const download_calendar_button = document.getElementById("download-calendar-button");
+download_calendar_button.onclick = () => {
+  const ics_file = localStorage.getItem("ics_file");
+  download ics_file ("calendar.ics")
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const ics_file = localStorage.getItem("ics_file");
