@@ -1,4 +1,7 @@
-import { generateIcsFileFromCalendarEventList } from "./class/CalendarEvent.mjs";
+import { 
+  CalendarEvent, 
+  generateIcsFileFromCalendarEventList
+} from "./class/CalendarEvent.mjs";
 import { 
   fetchCalendarList,
   parseCalendarStringToCalendarEventList,
@@ -20,8 +23,9 @@ fetch_calendars_button.onclick = async () => {
   ];
   const calendar_list = await fetchCalendarList(calendar_urls_to_fetch);
   const calendar_event_list = parseStringListToCalendarEventList(calendar_list);
-  const ics_file = generateIcsFileFromCalendarEventList(calendar_event_list);
-  localStorage.setItem("ics_file", ics_file);
+  saveCalendar(calendar_event_list);
+  
+  
   
   loadCalendar(calendar_event_list);
 }
@@ -29,10 +33,17 @@ fetch_calendars_button.onclick = async () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   const ics_file = localStorage.getItem("ics_file");
+  console.log(ics_file);
+  
   const calendar_event_list = parseCalendarStringToCalendarEventList(ics_file);
   loadCalendar(calendar_event_list);
 });
 // END INIT //
+
+function saveCalendar(calendar_event_list) {
+  const ics_file = generateIcsFileFromCalendarEventList(calendar_event_list);
+  localStorage.setItem("ics_file", ics_file);
+}
 
 function loadCalendar(calendar_event_list) {
   const calendarEl = document.getElementById("calendar");
@@ -49,7 +60,7 @@ function loadCalendar(calendar_event_list) {
     navLinks: true, // can click day/week names to navigate views
     selectable: true,
     selectMirror: true,
-    select: (arg) => select(calendar, arg),
+    select: (arg) => select(calendar, calendar_event_list, arg),
     eventClick: function (arg) {
       if (confirm("Are you sure you want to delete this event?")) {
         arg.event.remove();
@@ -64,18 +75,23 @@ function loadCalendar(calendar_event_list) {
 };
 
 
-function select(calendar, arg) {
-      console.log('select arg : ', arg);
-  
+function select(calendar, calendar_event_list, arg) {
       var title = prompt("Event Title:");
-      if (title) {
-        calendar.addEvent({
-          title: title,
-          start: arg.start,
-          end: arg.end,
-          allDay: arg.allDay,
-        });
-      }
+      
+      const calendar_event = new CalendarEvent(
+          title,
+          getDateAsYYYYMMDD(arg.start),
+          getDateAsYYYYMMDD(arg.end),
+          "inserer-url.com",
+          new Date().getUTCDate(),
+          "RESERVED",
+          arg.allDay,
+          "whatever"
+      )
+
+      calendar_event_list.push(calendar_event)
+      saveCalendar(calendar_event_list)
+      calendar.addEvent(calendar_event);
       calendar.unselect();
 }
 
@@ -102,4 +118,11 @@ export function getTodayDateAsYYYYMMDD() {
   const day = String(now.getDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
+}
+
+function getDateAsYYYYMMDD(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
 }

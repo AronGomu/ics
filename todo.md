@@ -1,9 +1,9 @@
 # Todo
 - Loading the ics files => DONE
 - input for calendar (ics) urls => DONE
-- onUpdate calendar save the ics file => 
-- update ics file on load
-- download ics button file
+- onUpdate calendar save the ics file => DONE
+- update ics file (remotely?) on load
+- download ics button file =>
 - inputs to import ics files ? (can you do all in front ?)
 
 # Bonus
