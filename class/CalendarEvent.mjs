@@ -15,14 +15,14 @@ export class CalendarEvent {
     description = null,
     start = null,
     end = null,
-    id = null, 
+    id = null,
     stamp = null,
     summary = null,
     status = null,
     backgroundColor = null,
-    allDay = true, 
+    allDay = true,
   ) {
-    this.title = description;
+    this.title = summary;
     this.start = start;
     this.end = end;
     this.id = id;
@@ -31,10 +31,11 @@ export class CalendarEvent {
     this.status = status;
     this.backgroundColor = backgroundColor;
     this.allDay = allDay;
+    this.description = description;
   }
 
   generateBackgroundColor() {
-    console.log(this.id);
+    // INFO: Each calendar you fetch may be slightly different so you probably need to make a custom function to check if it match the original website
     if (this.id.includes("airbnb")) return this.backgroundColor = EventColors.RED;
     else if (this.id.includes("booking")) return this.backgroundColor = EventColors.BLUE;
     return this.backgroundColor = EventColors.WHITE;
@@ -96,19 +97,19 @@ export function parseStringToCalendarEvent(icsText) {
  */
 function formatICSDate(dateStr) {
   if (!dateStr) return null
-  return `${dateStr.slice(0,4)}-${dateStr.slice(4,6)}-${dateStr.slice(6,8)}`
+  return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`
 }
 
 
 export function generateIcsFileFromCalendarEventList(ics_event_list) {
   let ics_file = "BEGIN:VCALENDAR\n"
-  + "VERSION:2.0\n"
-  + "PRODID:null\n"
-  + "CALSCALE:GREGORIAN\n"
-  + "METHOD:PUBLISH\n"
-  + "X-WR-CALNAME:insert_calendar_name\n"
-  + "X-WR-TIMEZONE:UTC\n"
-  + "\n"
+    + "VERSION:2.0\n"
+    + "PRODID:null\n"
+    + "CALSCALE:GREGORIAN\n"
+    + "METHOD:PUBLISH\n"
+    + "X-WR-CALNAME:insert_calendar_name\n"
+    + "X-WR-TIMEZONE:UTC\n"
+    + "\n"
 
   for (const ics_event of ics_event_list) {
     ics_file += generateIcsFileFromCalendarEvent(ics_event);
@@ -119,13 +120,13 @@ export function generateIcsFileFromCalendarEventList(ics_event_list) {
 
 function generateIcsFileFromCalendarEvent(calendar_event) {
   return "BEGIN:VEVENT\n"
-  + "UID:" + calendar_event.id + "\n"
-  + "DTSTAMP:" + calendar_event.stamp + "\n"
-  + "DTSTART;VALUE=DATE:" + calendar_event.start + "\n"
-  + "DTEND;VALUE=DATE:" + calendar_event.end + "\n"
-  + "SUMMARY:" + calendar_event.summary + "\n"
-  + "DESCRIPTION:" + calendar_event.title+ "\n"
-  + "STATUS:" + calendar_event.status + "\n"
-  +"END:VEVENT\n"
-  + "\n"
+    + "UID:" + calendar_event.id + "\n"
+    + "DTSTAMP:" + calendar_event.stamp + "\n"
+    + "DTSTART;VALUE=DATE:" + calendar_event.start + "\n"
+    + "DTEND;VALUE=DATE:" + calendar_event.end + "\n"
+    + "SUMMARY:" + calendar_event.summary + "\n"
+    + "DESCRIPTION:" + calendar_event.title + "\n"
+    + "STATUS:" + calendar_event.status + "\n"
+    + "END:VEVENT\n"
+    + "\n"
 }

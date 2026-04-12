@@ -9,7 +9,8 @@ import { bookingIcs } from "./test/bookingIcs.mjs";
 
 /** @returns {Array<string>} */
 export async function fetchCalendarList(url_list) {
-  return [airbnbIcs, bookingIcs];
+  console.error("REPLACE BY FETCH TO OWN BACKEND AND BACKEND MAKE THE REQUEST TO FETCH ICS FILE AND GIVE IT TO FRONT. OTHERWISE CORS BLOCK THE REQUEST !")
+  return [airbnbIcs]
   // /** @type {Array<string>} */ const cal_res_list = []
   // for (const url of url_list) cal_res_list.push(await fetchCalendar(url))
   // return cal_res_list;
@@ -17,8 +18,9 @@ export async function fetchCalendarList(url_list) {
 
 /** @returns {string} */
 export async function fetchCalendar(url) {
+  console.error("REPLACE BY FETCH TO OWN BACKEND AND BACKEND MAKE THE REQUEST TO FETCH ICS FILE AND GIVE IT TO FRONT. OTHERWISE CORS BLOCK THE REQUEST !")
+  // return await fetch(request_to_backend);
   return airbnbIcs;
-  return await ((await fetch(url)).text());
 }
 
 /**
@@ -27,13 +29,13 @@ export async function fetchCalendar(url) {
  */
 export function parseStringListToCalendarEventList(calendar_string_list) {
   const calendar_event_list = [];
-  
+
   for (const calendar_string of calendar_string_list) {
     calendar_event_list.push(
       ...parseCalendarStringToCalendarEventList(calendar_string)
     );
   }
-  
+
   return calendar_event_list;
 }
 
@@ -63,7 +65,7 @@ export function parseCalendarStringToCalendarEventList(calendar_string) {
     readNextIcsProperty(ics_event_to_add, calendar_string, i, "DTSTART;VALUE=DATE:", "start");
     readNextIcsProperty(ics_event_to_add, calendar_string, i, "DTEND;VALUE=DATE:", "end");
     readNextIcsProperty(ics_event_to_add, calendar_string, i, "SUMMARY:", "summary");
-    readNextIcsProperty(ics_event_to_add, calendar_string, i, "DESCRIPTION:", "title");
+    readNextIcsProperty(ics_event_to_add, calendar_string, i, "DESCRIPTION:", "description");
     readNextIcsProperty(ics_event_to_add, calendar_string, i, "STATUS:", "status");
   }
 
@@ -72,16 +74,17 @@ export function parseCalendarStringToCalendarEventList(calendar_string) {
 
 function readNextIcsProperty(
   calendar_event_to_add,
-  calendar_string, 
-  i, 
-  ics_raw_property, 
+  calendar_string,
+  i,
+  ics_raw_property,
   ics_property
 ) {
   if (!stringMatchAtIndex(calendar_string, i, ics_raw_property)) return;
-  
+
   const value = getValueAfterDoublePoint(calendar_string, i, ics_raw_property);
 
   calendar_event_to_add[ics_property] = value;
+  if (ics_property === "summary") calendar_event_to_add["title"] = value;
   i += ics_raw_property.length + value.length;
 }
 
@@ -97,11 +100,11 @@ function stringMatchAtIndex(list, i, s) {
 function getValueAfterDoublePoint(text, original_index, s) {
   let value = ""
   let i = original_index + s.length;
-  
+
   while (text[i] !== `\n`) {
     value += text[i];
     i++;
-    if (!text[i+1]) break; // AVOID INFINITE LOOP !
+    if (!text[i + 1]) break; // AVOID INFINITE LOOP !
   }
   return value;
 }
