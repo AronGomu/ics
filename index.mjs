@@ -1,6 +1,7 @@
 import {
   CalendarEvent,
-  generateIcsFileFromCalendarEventList
+  generateIcsFileFromCalendarEventList,
+  parseIcsStringToCalendarEventList
 } from "./class/CalendarEvent.mjs";
 import {
   fetchCalendarList,
@@ -8,7 +9,6 @@ import {
   parseStringListToCalendarEventList,
 } from "./ics.mjs";
 
-// NOTE: START INIT //
 
 // HTML ELEMENTS + FUNCTIONS ASSOCIATED //
 
@@ -17,7 +17,7 @@ const add_calendar_button = document.getElementById("add-calendar-button");
 console.log(add_calendar_button)
 add_calendar_button.removeChild
 add_calendar_button.onclick = () => {
-  add_calendar_urlInput();
+  add_calendar_url_input();
 }
 
 // const airbnb_input = document.getElementById("airbnb-input");
@@ -53,33 +53,31 @@ download_calendar_button.onclick = () => {
 }
 
 
+
+// NOTE: INIT FUNCION //
 document.addEventListener("DOMContentLoaded", () => {
-  const ics_file = localStorage.getItem("ics_file");
-  console.log(ics_file);
-  if (!ics_file) loadCalendar([]);
-  else loadCalendar(parseCalendarStringToCalendarEventList(ics_file));
+  const ics_from_local_storage = localStorage.getItem("ics_file");
 
+  if (!ics_from_local_storage) loadCalendar([]);
+  else loadCalendar(parseCalendarStringToCalendarEventList(ics_from_local_storage));
 
-  loadCalendarsUrls();
+  const calendar_url_list = getCalendarsUrlsToFetch();
+  fetchRemoteCalendars(calendar_url_list);
+  set_all_calendar_url_input(calendar_url_list)
 });
 
 
-// NOTE: END INIT //
+// NOTE: FUNCTIONS SECTION
 
+/** @param {Array<string>} calendar_url_list 
+ * @returns {void}  */
+function set_all_calendar_url_input(calendar_url_list) {
+  for (const calendar_url of calendar_url_list) {
+    add_calendar_url_input(calendar_url);
+  }
+}
 
-// TEST: TEST SECTION TO COMMENT OUT
-// add_calendar_button.click();
-// document.getElementById("deletable-input-0").querySelector('input').value = "TEST URL ???"
-// add_calendar_button.click();
-// document.getElementById("deletable-input-1").querySelector('input').value = "TEST 2";
-// add_calendar_button.click();
-// document.getElementById("deletable-input-2").querySelector('input').value = "TEST 3";
-// fetch_calendars_button.click();
-
-
-// NOTE: FUNCTIONS
-
-function add_calendar_urlInput(value = "") {
+function add_calendar_url_input(value = "") {
   const all_inputs = ics_url_inputs_container.querySelectorAll("div");
   const nb_id = String(all_inputs.length);
 
@@ -112,9 +110,59 @@ function saveCalendarsUrls(ics_url_inputs_container) {
   localStorage.setItem("calendars_url", JSON.stringify(calendar_urls_to_fetch));
 }
 
-function loadCalendarsUrls() {
-  const calendar_urls_to_fetch = JSON.parse(localStorage.getItem("calendars_url"));
-  if (calendar_urls_to_fetch) calendar_urls_to_fetch.map(url => add_calendar_urlInput(url));
+
+
+/** @returns {Array<string>} */
+function getCalendarsUrlsToFetch() {
+  return JSON.parse(localStorage.getItem("calendars_url"));
+}
+
+/** @param {Array<string>} calendar_urls 
+ * @returns {Array<CalendarEvent>}  */
+async function fetchRemoteCalendars(calendar_urls) {
+  const ics_string_list = await fetchRemoteCalendarAsIcsStringList(calendar_urls);
+  const remote_calendar_event_list_list = ics_string_list.map(
+    ics_string => parseIcsStringToCalendarEventList(ics_string)
+  );
+  let remote_calendar_event_list = []
+  if (remote_calendar_event_list_list && remote_calendar_event_list_list.length > 0) {
+    remote_calendar_event_list = remote_calendar_event_list_list.flatMap(e => e);
+  }
+  const local_calendar_event_list = getLocalCalendarEventList();
+  const synchronized_calendar_event_list = remote_calendar_event_list.concat(local_calendar_event_list);
+  if (isNonEmptyArray(synchronized_calendar_event_list)) loadCalendar(synchronized_calendar_event_list);
+}
+
+/** @param {Array<string>} calendar_urls 
+ * @returns {Array<string>}  */
+async function fetchRemoteCalendarAsIcsStringList(calendar_urls) {
+  // NOTE: REPLACE THE FETCH BY THE ACTUAL URLS
+  console.error("REPLACE THE FETCH BY THE ACTUAL URLS");  // TO REMOVE WHEN API WORK !
+  return [] // TO REMOVE WHEN API WORK !
+  try {
+    const response = await fetch(
+      URL_API_FETCH_REMOTE_CALENDAR,
+      {
+        method: "POST",
+        body: JSON.stringify(calendar_urls)
+      }
+    );
+
+    if (!response.ok) throw new Error(`Response status: ${response.status}`);
+
+    return await response.json();
+  } catch (error) {
+    console.error(error.message);
+    return "";
+  }
+}
+
+/** Get from local storage the events defined by the user
+ * @returns {Array<CalendarEvent>} */
+function getLocalCalendarEventList() {
+  const local_calendar_event_list = JSON.parse(localStorage.getItem("local_calendar_event"));
+  if (isNonEmptyArray(local_calendar_event_list)) return local_calendar_event_list;
+  return [];
 }
 
 function saveCalendar(calendar_event_list) {
@@ -203,4 +251,8 @@ function getDateAsYYYYMMDD(date) {
   const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}${month}${day}`;
+}
+
+function isNonEmptyArray(value) {
+  return Array.isArray(value) && value.length > 0;
 }

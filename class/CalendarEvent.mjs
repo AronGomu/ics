@@ -1,7 +1,6 @@
 export const EventColors = {
   RED: "#ff0000",
   CONFIRMED: "#ff0000",
-  // CONFIRMED: "#ff0000",
   GREEN: "#00ff00",
   BLUE: "#0000ff",
   WHITE: "#000000",
@@ -42,12 +41,10 @@ export class CalendarEvent {
   }
 }
 
-/**
- * Parse an ICS file and return CalendarEvents.
+/** Parse an ICS file and return CalendarEvents.
  * @param {string} icsText - Raw ICS file content as a string
- * @returns {Array<CalendarEvent>}
- */
-export function parseStringToCalendarEvent(icsText) {
+ * @returns {Array<CalendarEvent>} */
+export function parseIcsStringToCalendarEventList(icsText) {
   const events = []
   const lines = icsText.split(/\r?\n/)
 
